@@ -5,6 +5,7 @@ from threading import currentThread, Thread, RLock, Event
 from time import sleep
 
 from robot.api import logger
+from robot.utils import is_truthy
 from robotbackgroundlogger import BackgroundLogger, BackgroundMessage as orig_bg_message
 
 from . import api
@@ -208,4 +209,8 @@ class BackgroundCustomLogger(BackgroundLogger, Thread):
                 message = self._messages.pop()
                 logger.write(f"{message}", message.level, message.html)
 
-
+    def info(self, msg, **kwargs):
+        html = kwargs.get('html', None)
+        console = kwargs.get('console', None) or kwargs.get('also_to_console', None) or kwargs.get('also_console', None)
+        console = is_truthy(console)
+        super().info(msg, html=html, also_to_console=console)
