@@ -6,6 +6,7 @@ Library  examples_bg_keywords.py
 *** Test Cases ***
 Test Bg log
     [Tags]    DEBUG
+
     Start thread  th1  my text1
     Start thread  th2  my text2
     BuiltIn.sleep  10s

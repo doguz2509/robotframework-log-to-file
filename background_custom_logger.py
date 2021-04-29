@@ -9,11 +9,11 @@ from robot.api import logger
 from robot.utils.robottime import timestr_to_secs
 from robotbackgroundlogger import BackgroundLogger, BackgroundMessage as orig_bg_message
 
-__version__ = '1.2.1'
+__version__ = '1.2.3'
 
 DEFAULT_FORMATTER = "%(asctime)s [%(levelname)-8s] [%(threadName)-14s] : %(message)s"
-DEFAULT_LOG_INTERVAL = '5s'
-DEFAULT_LOG_COUNT = 10
+DEFAULT_LOG_INTERVAL = '0.5s'
+DEFAULT_LOG_COUNT = 5
 
 
 # Replace emit method for reflect real thread name instead of loggin's one
@@ -27,12 +27,21 @@ StreamHandler.emit = emit
 
 
 def robot_level_index(level):
-    return {'TRACE': logging.DEBUG,
+    return {'TRACE': logging.DEBUG // 2,
             'DEBUG': logging.DEBUG,
             'INFO': logging.INFO,
             'HTML': logging.INFO,
             'WARN': logging.WARN,
             'ERROR': logging.ERROR}[level]
+
+
+def _checkLevel(logger_level, msg_level):
+    try:
+        assert logger_level <= robot_level_index(msg_level)
+    except AssertionError:
+        return False
+    else:
+        return True
 
 
 def create_file_handler(file_path, max_bytes=(1048576 * 5), rollup_count=20, cumulative=False) -> logging.Handler:
@@ -103,7 +112,7 @@ def create_default_handler():
 
 
 class BackgroundCustomLogger(BackgroundLogger, Thread):
-    def __init__(self, name=None, log_count=DEFAULT_LOG_COUNT,
+    def __init__(self, name=None, log_count=DEFAULT_LOG_COUNT, level='INFO',
                  file=None, formatter=DEFAULT_FORMATTER, log_interval=DEFAULT_LOG_INTERVAL):
         """
         BackgroundCustomLogger instance
@@ -121,8 +130,11 @@ class BackgroundCustomLogger(BackgroundLogger, Thread):
         self._formatter = formatter
         self._event = Event()
         self._is_started_once = False
-        Thread.__init__(self, name=name or self.__class__.__name__, daemon=True)
-        self._logging = logging.getLogger(self.name)
+        Thread.__init__(self, name=name or self.__class__.__name__, target=self._run, daemon=True)
+        self._logging = None
+        self._level = robot_level_index(level)
+        self._get_logger()
+        self.set_level(level)
         self._log_file = file
         if file:
             file_handler = create_file_handler(file)
@@ -130,6 +142,9 @@ class BackgroundCustomLogger(BackgroundLogger, Thread):
         else:
             self.add_handler(create_default_handler())
         logger.info(f"{self.name} created")
+
+    def _get_logger(self):
+        self._logging = logging.getLogger(self.name)
 
     def get_relative_file_path(self, start_from):
         if self._log_file:
@@ -140,11 +155,14 @@ class BackgroundCustomLogger(BackgroundLogger, Thread):
     def formatter(self) -> logging.Formatter:
         return logging.Formatter(self._formatter)
 
+    def set_level(self, level):
+        self._level = robot_level_index(level)
+
     def add_handler(self, handler: logging.Handler):
         handler.setFormatter(self.formatter)
         self._logging.addHandler(handler)
 
-    def run(self):
+    def _run(self):
         while not self._event.isSet():
             if len(self._messages) >= 0:
                 self.log_background_messages()
@@ -156,18 +174,24 @@ class BackgroundCustomLogger(BackgroundLogger, Thread):
         logger.info(f"{self.name} stopped", also_console=True)
 
     def write(self, msg, level, html=False):
-        if not self._is_started_once:
-            logger.info(f"{self.name} starting")
-            self.start()
-            self._is_started_once = True
+        try:
+            assert _checkLevel(self._level, level)
 
-        with self.lock:
-            thread = currentThread().getName()
-            if thread in self.LOGGING_THREADS:
-                logger.write(msg, level, html)
-            else:
-                message = BackgroundMessage(msg, level, html, thread)
-                self._messages.put(message)
+            if not self._is_started_once:
+                logger.info(f"{self.name} starting")
+                self.start()
+                self._is_started_once = True
+
+            with self.lock:
+                thread = currentThread().getName()
+                if thread in self.LOGGING_THREADS:
+                    logger.write(msg, level, html)
+                else:
+                    message = BackgroundMessage(msg, level, html, thread)
+                    self._messages.put(message)
+
+        except AssertionError:
+            pass
 
     def log_background_messages(self, name=None):
         """Forwards messages logged on background to Robot Framework log.
@@ -189,7 +213,7 @@ class BackgroundCustomLogger(BackgroundLogger, Thread):
                     assert counter > 0
                     message = self._messages.pop()
                     _level = message.level if message.level != 'TRACE' else 'DEBUG'
-                    _level_index = robot_level_index(_level)
+                    _level_index = robot_level_index(_level if _level != 'TRACE' else 'DEBUG')
                     self._logging.log(_level_index, message.format(), extra={'source_thread': message.thread})
                 except (IndexError, AssertionError):
                     break
@@ -213,5 +237,6 @@ class BackgroundCustomLogger(BackgroundLogger, Thread):
 
 __all__ = [
     'BackgroundCustomLogger',
-    'StreamHandler'
+    'StreamHandler',
+    'create_file_handler'
 ]

@@ -1,5 +1,8 @@
+import os
 import re
+import shutil
 from os.path import abspath, dirname, join
+
 from setuptools import setup, find_packages
 
 NAME = 'background_custom_logger'
@@ -24,6 +27,8 @@ with open(join(CURDIR, 'requirements.txt')) as f:
 
 PACKAGES = find_packages('.', exclude=['venv'])
 print(f"Packages: {PACKAGES}")
+
+shutil.rmtree(os.path.join(CURDIR, 'dist'), True)
 
 setup(
     name='background_custom_logger',
