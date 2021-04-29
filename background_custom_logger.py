@@ -9,7 +9,7 @@ from robot.api import logger
 from robot.utils.robottime import timestr_to_secs
 from robotbackgroundlogger import BackgroundLogger, BackgroundMessage as orig_bg_message
 
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 
 DEFAULT_FORMATTER = "%(asctime)s [%(levelname)-8s] [%(threadName)-14s] : %(message)s"
 DEFAULT_LOG_INTERVAL = '5s'
@@ -120,6 +120,7 @@ class BackgroundCustomLogger(BackgroundLogger, Thread):
         self._log_count = log_count
         self._formatter = formatter
         self._event = Event()
+        self._is_started_once = False
         Thread.__init__(self, name=name or self.__class__.__name__, daemon=True)
         self._logging = logging.getLogger(self.name)
         self._log_file = file
@@ -128,8 +129,7 @@ class BackgroundCustomLogger(BackgroundLogger, Thread):
             self.add_handler(file_handler)
         else:
             self.add_handler(create_default_handler())
-        logger.info(f"{self.name} starting")
-        self.start()
+        logger.info(f"{self.name} created")
 
     def get_relative_file_path(self, start_from):
         if self._log_file:
@@ -153,9 +153,14 @@ class BackgroundCustomLogger(BackgroundLogger, Thread):
     def join(self, timeout=None):
         self._event.set()
         super().join(timeout)
-        self.write(f"{self.name} stopped", 'INFO')
+        logger.info(f"{self.name} stopped", also_console=True)
 
     def write(self, msg, level, html=False):
+        if not self._is_started_once:
+            logger.info(f"{self.name} starting")
+            self.start()
+            self._is_started_once = True
+
         with self.lock:
             thread = currentThread().getName()
             if thread in self.LOGGING_THREADS:

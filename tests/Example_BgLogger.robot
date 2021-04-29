@@ -8,11 +8,11 @@ Test Bg log
     [Tags]    DEBUG
     Start thread  th1  my text1
     Start thread  th2  my text2
-    BuiltIn.sleep  20s
+    BuiltIn.sleep  10s
     Stop thread  th1
-    BuiltIn.sleep  20s
+    BuiltIn.sleep  10s
     Stop thread  th2
-    [Teardown]  Stop logger
+#    [Teardown]  Stop logger
 
 *** Keywords ***
 Provided precondition
