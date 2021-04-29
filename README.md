@@ -3,7 +3,7 @@
 
 Allow store background log events into other sources, such file, sqlite, etc.
 
-Mostly inherited from  [https://github.com/robotframework/robotbackgroundlogger | robotbackgroundlogger]
+Mostly inherited from  [https://github.com/robotframework/robotbackgroundlogger|robotbackgroundlogger]
 
 Difference are:
     
