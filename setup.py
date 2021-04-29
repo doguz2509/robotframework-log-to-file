@@ -32,10 +32,9 @@ print(f"Packages: {PACKAGES}")
 shutil.rmtree(os.path.join(CURDIR, 'dist'), True)
 
 setup(
-    name='background_custom_logger',
+    name='robotbackground_custom_logger',
     version=VERSION,
     packages=PACKAGES,
-    py_modules=['background_custom_logger'],
     url='https://github.com/doguz2509/robotframework-log-to-file',
     download_url='https://pypi.org/manage/project/background-custom-log/releases/',
     package_data={'': ['*.robot', 'tests/*.robot']},
