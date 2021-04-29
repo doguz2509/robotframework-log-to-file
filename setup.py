@@ -2,10 +2,11 @@ import os
 import re
 import shutil
 from os.path import abspath, dirname, join
-
 from setuptools import setup, find_packages
 
-NAME = 'background_custom_logger'
+from robotbackground_custom_logger import __version__
+
+NAME = 'robotbackground_custom_logger'
 CLASSIFIERS = """
 Development Status :: 5 - Production/Stable
 License :: MIT
@@ -17,9 +18,9 @@ Framework :: Robot Framework
 CURDIR = dirname(abspath(__file__))
 
 print(f"Current dir: {CURDIR}")
-with open(join(CURDIR, NAME+'.py')) as f:
-    VERSION = re.search("\n__version__ = '(.*)'\n", f.read()).group(1)
-    print(f"Version: {VERSION}")
+
+VERSION = __version__
+print(f"Version: {VERSION}")
 with open(join(CURDIR, 'README.md')) as f:
     README = f.read()
 with open(join(CURDIR, 'requirements.txt')) as f:
