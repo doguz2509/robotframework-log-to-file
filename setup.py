@@ -36,7 +36,7 @@ setup(
     version=VERSION,
     packages=PACKAGES,
     url='https://github.com/doguz2509/robotframework-log-to-file',
-    download_url='https://pypi.org/manage/project/background-custom-log/releases/',
+    download_url='https://pypi.org/project/robotbackground-custom-logger',
     package_data={'': ['*.robot', 'tests/*.robot']},
     license='MIT',
     author='Dmitry Oguz',
