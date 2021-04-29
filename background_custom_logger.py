@@ -9,7 +9,7 @@ from robot.api import logger
 from robot.utils.robottime import timestr_to_secs
 from robotbackgroundlogger import BackgroundLogger, BackgroundMessage as orig_bg_message
 
-__version__ = '1.2.0'
+__version__ = '1.2.1'
 
 DEFAULT_FORMATTER = "%(asctime)s [%(levelname)-8s] [%(threadName)-14s] : %(message)s"
 DEFAULT_LOG_INTERVAL = '5s'

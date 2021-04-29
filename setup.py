@@ -22,12 +22,17 @@ with open(join(CURDIR, 'README.md')) as f:
 with open(join(CURDIR, 'requirements.txt')) as f:
     REQUIRES = f.read().splitlines()
 
+PACKAGES = find_packages('.', exclude=['venv'])
+print(f"Packages: {PACKAGES}")
+
 setup(
     name='background_custom_logger',
     version=VERSION,
-    packages=find_packages(exclude=['venv']),
+    packages=PACKAGES,
+    py_modules=['background_custom_logger'],
     url='https://github.com/doguz2509/robotframework-log-to-file',
     download_url='https://pypi.org/manage/project/background-custom-log/releases/',
+    package_data={'': ['*.robot', 'tests/*.robot']},
     license='MIT',
     author='Dmitry Oguz',
     author_email='doguz2509@gmail.com',
