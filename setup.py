@@ -23,7 +23,7 @@ with open(join(CURDIR, 'requirements.txt')) as f:
     REQUIRES = f.read().splitlines()
 
 setup(
-    name='background_custom_log',
+    name='background_custom_logger',
     version=VERSION,
     packages=find_packages(exclude=['venv']),
     url='https://github.com/doguz2509/robotframework-log-to-file',
